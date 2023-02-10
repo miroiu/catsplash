@@ -68,18 +68,18 @@ function App() {
   return (
     <div className={cx('h-full', darkMode && 'dark')}>
       <header className="p-2 flex flex-row-reverse sm:flex-col bg-gradient-to-b from-black to-black/50">
-        <nav className="flex w-full h-12 justify-end gap-4 items-center max-w-5xl 2xl:max-w-7xl mx-auto">
+        <nav className="flex w-full h-12 justify-end gap-2 items-center max-w-5xl 2xl:max-w-7xl mx-auto">
           <a
             target="_blank"
             href="https://github.com/miroiu/catsplash"
-            className="text-slate-500 hover:text-slate-200 p-1"
+            className="text-slate-200 p-2 bg-white/10 hover:bg-white/20 rounded"
           >
             <GitHub size="md" />
           </a>
           <button
             onClick={() => setDarkMode(x => !x)}
             title={darkMode ? 'Change to light theme' : 'Change to dark theme'}
-            className="text-yellow-500 hover:text-yellow-300 p-1"
+            className="text-yellow-300 p-2 bg-white/10 hover:bg-white/20 rounded"
           >
             {darkMode ? <Sun size="md" /> : <Moon size="md" />}
           </button>
