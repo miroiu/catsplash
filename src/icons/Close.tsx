@@ -1,7 +1,7 @@
 import { X as FeatherIcon } from 'react-feather';
 import { IconProps, sizeMap } from './IconProps';
 
-export const Minus = ({
+export const Close = ({
   color = 'currentcolor',
   stroke = 'currentcolor',
   size = 'md',
