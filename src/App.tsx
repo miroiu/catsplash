@@ -1,22 +1,13 @@
 import { Dialog } from '@headlessui/react';
 import { cx } from 'classix';
-import { useEffect, useState } from 'react';
-import { BreedsFilter } from './components';
+import { useState } from 'react';
+import { CatImage } from './api';
+import { BreedsFilter, Feed } from './components';
 import { usePersistedValue, useScrollToTop } from './hooks';
 import { ArrowUp, Close, GitHub, Sun, Moon } from './icons';
 
-interface Image {
-  id: string;
-  url: string;
-  height: number;
-  width: number;
-}
-
-const catsUrl = 'https://api.thecatapi.com/v1/images/search?limit=10';
-
 function App() {
   const [darkMode, setDarkMode] = usePersistedValue('app:darkMode', false);
-  const [images, setImages] = useState<Image[]>([]);
   const [selectedBreeds, setSelectedBreeds] = usePersistedValue<string[]>(
     'filter:breeds',
     []
@@ -25,22 +16,9 @@ function App() {
     'filter:view',
     'waterfall'
   );
-  const [loading, setLoading] = useState(true);
-  const [imagePreview, setImagePreview] = useState<Image>();
-
-  useEffect(() => {
-    const url =
-      selectedBreeds.length > 0
-        ? `${catsUrl}&breed_ids=${selectedBreeds.join(',')}`
-        : catsUrl;
-    fetch(url)
-      .then(x => x.json())
-      .then(setImages)
-      .finally(() => setLoading(false));
-  }, [selectedBreeds]);
+  const [imagePreview, setImagePreview] = useState<CatImage>();
 
   const { visible, scrollToTop } = useScrollToTop();
-  const uniform = view === 'uniform';
 
   return (
     <div className={cx('h-full', darkMode && 'dark')}>
@@ -81,33 +59,11 @@ function App() {
               onViewChange={setView}
             />
           </div>
-          <main className="columns-1 md:columns-2 lg:columns-3 min-h-full">
-            {loading
-              ? Array.from({ length: 10 }).map((x, i) => (
-                  <div
-                    className={cx(
-                      'bg-slate-300 mb-4 animate-pulse rounded',
-                      uniform ? 'h-80' : i % 2 === 0 ? 'h-96' : 'h-[32rem]'
-                    )}
-                  />
-                ))
-              : images.map(image => (
-                  <button
-                    key={image.id}
-                    onClick={() => setImagePreview(image)}
-                    className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full"
-                  >
-                    <img
-                      key={image.id}
-                      src={image.url}
-                      className={cx(
-                        'w-full hover:scale-105 transition-transform',
-                        uniform && 'h-80 object-cover'
-                      )}
-                    />
-                  </button>
-                ))}
-          </main>
+          <Feed
+            onPreview={setImagePreview}
+            filter={selectedBreeds}
+            view={view}
+          />
         </div>
       </div>
       <Dialog

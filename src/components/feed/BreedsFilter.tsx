@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Listbox } from '@headlessui/react';
 import cx from 'classix';
-import { Close, Masonry, Plus, RotateCcw, Grid } from '../icons';
-import { CatBreed, catsClient } from '../api';
+import { Close, Masonry, Plus, RotateCcw, Grid } from '../../icons';
+import { CatBreed, catsClient } from '../../api';
 
-type ViewType = 'uniform' | 'waterfall';
+export type ViewType = 'uniform' | 'waterfall';
 
-interface BreedsFilterProps {
+export interface BreedsFilterProps {
   filter: string[];
   onFilter: (selectedBreeds: string[]) => void;
   view?: 'uniform' | 'waterfall';
