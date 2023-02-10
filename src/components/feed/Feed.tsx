@@ -1,5 +1,5 @@
 import cx from 'classix';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { CatImage, catsClient } from '../../api';
 import { ViewType } from './BreedsFilter';
 import { usePreviewCatImage } from './CatImageContext';
@@ -7,16 +7,14 @@ import { usePreviewCatImage } from './CatImageContext';
 interface FeedItemProps {
   image: CatImage;
   view?: ViewType;
+  onPreview?: (image: CatImage) => void;
 }
 
-const FeedItem = ({ image, view }: FeedItemProps) => {
-  const ctx = usePreviewCatImage() || [];
-  const [, previewImage] = ctx;
-
+const FeedItem = memo(({ image, view, onPreview }: FeedItemProps) => {
   const uniform = view === 'uniform';
   return (
     <button
-      onClick={() => previewImage?.(image)}
+      onClick={() => onPreview?.(image)}
       className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full"
     >
       <img
@@ -28,7 +26,7 @@ const FeedItem = ({ image, view }: FeedItemProps) => {
       />
     </button>
   );
-};
+});
 
 const FeedItemSkeleton = ({
   index,
@@ -57,6 +55,8 @@ export const Feed = ({ filter, view }: FeedProps) => {
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<CatImage[]>([]);
 
+  const [, previewImage] = usePreviewCatImage() || [];
+
   useEffect(() => {
     catsClient
       .getCats(filter)
@@ -71,7 +71,12 @@ export const Feed = ({ filter, view }: FeedProps) => {
             <FeedItemSkeleton key={i} index={i} view={view} />
           ))
         : images.map(image => (
-            <FeedItem key={image.id} image={image} view={view} />
+            <FeedItem
+              key={image.id}
+              image={image}
+              onPreview={previewImage}
+              view={view}
+            />
           ))}
     </main>
   );
