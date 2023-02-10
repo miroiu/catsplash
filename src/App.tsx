@@ -1,8 +1,13 @@
 import { Dialog } from '@headlessui/react';
 import { cx } from 'classix';
-import { PropsWithChildren, useState } from 'react';
-import { CatImage } from './api';
-import { BreedsFilter, Feed, ScrollToTopButton } from './components';
+import { PropsWithChildren } from 'react';
+import {
+  BreedsFilter,
+  CatImagePreviewContextProvider,
+  Feed,
+  ScrollToTopButton,
+  usePreviewCatImage,
+} from './components';
 import { usePersistedValue } from './hooks';
 import { Close, GitHub, Sun, Moon } from './icons';
 
@@ -42,7 +47,6 @@ const AppLayout = ({ children }: PropsWithChildren) => {
           {children}
         </div>
       </div>
-      <ScrollToTopButton />
     </div>
   );
 };
@@ -58,8 +62,6 @@ const FeedLayout = () => {
     'waterfall'
   );
 
-  const [imagePreview, setImagePreview] = useState<CatImage>();
-
   return (
     <>
       <div className="sticky top-0 mb-16 drop-shadow-lg z-10">
@@ -70,45 +72,54 @@ const FeedLayout = () => {
           onViewChange={setView}
         />
       </div>
-      <Feed onPreview={setImagePreview} filter={selectedBreeds} view={view} />
-      {imagePreview && (
-        <Dialog
-          open={!!imagePreview}
-          onClose={() => setImagePreview(undefined)}
-          className="relative z-50"
-        >
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-            aria-hidden="true"
-          />
-          <div className="fixed inset-0 flex items-center justify-center p-4">
-            <Dialog.Title className="fixed bottom-0 sm:top-0 sm:bottom-auto p-4 w-full flex justify-center sm:justify-end bg-black/40 shadow-lg">
-              <button
-                onClick={() => setImagePreview(undefined)}
-                className="p-3 rounded-full text-slate-300 hover:text-slate-50"
-              >
-                <Close size="lg" />
-              </button>
-            </Dialog.Title>
-            <Dialog.Panel className="w-full max-w-fit max-h-full rounded overflow-hidden shadow-2xl border-4 border-white/50">
-              <img
-                className="rounded"
-                src={imagePreview?.url}
-                width={imagePreview?.width}
-                height={imagePreview?.height}
-              />
-            </Dialog.Panel>
-          </div>
-        </Dialog>
-      )}
+      <Feed filter={selectedBreeds} view={view} />
     </>
+  );
+};
+
+const CatImagePreviewDialog = () => {
+  const [imagePreview, setImagePreview] = usePreviewCatImage();
+
+  return (
+    <Dialog
+      open={!!imagePreview}
+      onClose={() => setImagePreview(undefined)}
+      className="relative z-50"
+    >
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+        aria-hidden="true"
+      />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Title className="fixed bottom-0 sm:top-0 sm:bottom-auto p-4 w-full flex justify-center sm:justify-end bg-black/40 shadow-lg">
+          <button
+            onClick={() => setImagePreview(undefined)}
+            className="p-3 rounded-full text-slate-300 hover:text-slate-50"
+          >
+            <Close size="lg" />
+          </button>
+        </Dialog.Title>
+        <Dialog.Panel className="w-full max-w-fit max-h-full rounded overflow-hidden shadow-2xl border-4 border-white/50">
+          <img
+            className="rounded"
+            src={imagePreview?.url}
+            width={imagePreview?.width}
+            height={imagePreview?.height}
+          />
+        </Dialog.Panel>
+      </div>
+    </Dialog>
   );
 };
 
 function App() {
   return (
     <AppLayout>
-      <FeedLayout />
+      <CatImagePreviewContextProvider>
+        <FeedLayout />
+        <CatImagePreviewDialog />
+      </CatImagePreviewContextProvider>
+      <ScrollToTopButton />
     </AppLayout>
   );
 }

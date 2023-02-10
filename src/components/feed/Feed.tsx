@@ -2,22 +2,25 @@ import cx from 'classix';
 import { useEffect, useState } from 'react';
 import { CatImage, catsClient } from '../../api';
 import { ViewType } from './BreedsFilter';
+import { usePreviewCatImage } from './CatImageContext';
 
 interface FeedItemProps {
-  url: string;
-  onPreview: () => void;
+  image: CatImage;
   view?: ViewType;
 }
 
-const FeedItem = ({ url, view, onPreview }: FeedItemProps) => {
+const FeedItem = ({ image, view }: FeedItemProps) => {
+  const ctx = usePreviewCatImage() || [];
+  const [, previewImage] = ctx;
+
   const uniform = view === 'uniform';
   return (
     <button
-      onClick={onPreview}
+      onClick={() => previewImage?.(image)}
       className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full"
     >
       <img
-        src={url}
+        src={image.url}
         className={cx(
           'w-full hover:scale-105 transition-transform',
           uniform && 'h-80 object-cover'
@@ -48,10 +51,9 @@ const FeedItemSkeleton = ({
 export interface FeedProps {
   filter?: string[];
   view?: ViewType;
-  onPreview: (image: CatImage) => void;
 }
 
-export const Feed = ({ filter, view, onPreview }: FeedProps) => {
+export const Feed = ({ filter, view }: FeedProps) => {
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<CatImage[]>([]);
 
@@ -69,12 +71,7 @@ export const Feed = ({ filter, view, onPreview }: FeedProps) => {
             <FeedItemSkeleton key={i} index={i} view={view} />
           ))
         : images.map(image => (
-            <FeedItem
-              key={image.id}
-              url={image.url}
-              onPreview={() => onPreview(image)}
-              view={view}
-            />
+            <FeedItem key={image.id} image={image} view={view} />
           ))}
     </main>
   );
