@@ -1,18 +1,9 @@
-import { Dialog, Listbox } from '@headlessui/react';
+import { Dialog } from '@headlessui/react';
 import { cx } from 'classix';
 import { useEffect, useState } from 'react';
+import { BreedsFilter } from './components';
 import { usePersistedValue, useScrollToTop } from './hooks';
-import {
-  ArrowUp,
-  Masonry,
-  Close,
-  Plus,
-  Grid,
-  GitHub,
-  Sun,
-  Moon,
-  RotateCcw,
-} from './icons';
+import { ArrowUp, Close, GitHub, Sun, Moon } from './icons';
 
 interface Image {
   id: string;
@@ -21,26 +12,19 @@ interface Image {
   width: number;
 }
 
-interface CatBreed {
-  id: string;
-  name: string;
-  description: string;
-}
-
 const catsUrl = 'https://api.thecatapi.com/v1/images/search?limit=10';
-
-const breedsUrl = 'https://api.thecatapi.com/v1/breeds';
 
 function App() {
   const [darkMode, setDarkMode] = usePersistedValue('app:darkMode', false);
   const [images, setImages] = useState<Image[]>([]);
-  const [breeds, setBreeds] = useState<CatBreed[]>([]);
   const [selectedBreeds, setSelectedBreeds] = usePersistedValue<string[]>(
     'filter:breeds',
     []
   );
-  const [expanded, setExpanded] = useState(false);
-  const [uniform, setUniform] = usePersistedValue('filter:view', false);
+  const [view, setView] = usePersistedValue<'uniform' | 'waterfall'>(
+    'filter:view',
+    'waterfall'
+  );
   const [loading, setLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<Image>();
 
@@ -55,15 +39,8 @@ function App() {
       .finally(() => setLoading(false));
   }, [selectedBreeds]);
 
-  useEffect(() => {
-    fetch(breedsUrl)
-      .then(x => x.json())
-      .then(setBreeds);
-  }, []);
-
   const { visible, scrollToTop } = useScrollToTop();
-
-  const breedsToDisplay = expanded ? breeds : breeds.slice(0, 10);
+  const uniform = view === 'uniform';
 
   return (
     <div className={cx('h-full', darkMode && 'dark')}>
@@ -97,59 +74,12 @@ function App() {
       <div className="bg-yellow-50/95 dark:bg-slate-900/95 min-h-full">
         <div className="relative max-w-5xl 2xl:max-w-7xl mx-auto">
           <div className="sticky top-0 mb-16 drop-shadow-lg z-10">
-            <Listbox
-              value={selectedBreeds}
-              onChange={setSelectedBreeds}
-              multiple
-            >
-              <div className="relative rounded-b bg-white shadow-md">
-                <div className="bg-white p-4 sticky sm:static top-0 flex gap-1">
-                  <div className="grow">
-                    <button
-                      onClick={() => setExpanded(prev => !prev)}
-                      className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black"
-                    >
-                      {expanded ? <Close size="sm" /> : <Plus size="sm" />}
-                      {expanded ? 'Less breeds' : 'More breeds'}
-                    </button>
-                  </div>
-                  <button
-                    disabled={!selectedBreeds.length}
-                    onClick={() => setSelectedBreeds([])}
-                    title="Clear filter"
-                    className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black disabled:opacity-40 disabled:hover:text-gray-600 px-2"
-                  >
-                    <RotateCcw size="sm" />
-                  </button>
-                  <button
-                    onClick={() => setUniform(prev => !prev)}
-                    title={uniform ? 'Waterfall' : 'Uniform'}
-                    className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black px-2"
-                  >
-                    {uniform ? <Masonry size="md" /> : <Grid size="md" />}
-                  </button>
-                </div>
-                <Listbox.Options
-                  static
-                  className={cx(
-                    'px-4 pb-4 max-h-screen overflow-y-auto sm:flex gap-2 items-center flex-wrap cursor-paw',
-                    expanded ? 'flex' : 'hidden'
-                  )}
-                >
-                  {breedsToDisplay.map((breed, index) => (
-                    <Listbox.Option
-                      key={index}
-                      as="button"
-                      value={breed.id}
-                      className="px-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200  cursor-paw"
-                      title={breed.description}
-                    >
-                      <span>{breed.name}</span>
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </div>
-            </Listbox>
+            <BreedsFilter
+              filter={selectedBreeds}
+              onFilter={setSelectedBreeds}
+              view={view}
+              onViewChange={setView}
+            />
           </div>
           <main className="columns-1 md:columns-2 lg:columns-3 min-h-full">
             {loading
