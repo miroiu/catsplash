@@ -27,11 +27,6 @@ interface CatBreed {
   description: string;
 }
 
-/// https://picsum.photos/v2/list?page=1&limit=5
-
-// const apiUrl =
-//   'https://api.thecatapi.com/v1/images/search?limit=50&breed_ids=beng&api_key=live_c9jHeIqNkOhxkKcunV3xJacsVqvYesMijmSABVztrXCyhPhOtmLxMCNdpaZcy7mz';
-
 const catsUrl = 'https://api.thecatapi.com/v1/images/search?limit=10';
 
 const breedsUrl = 'https://api.thecatapi.com/v1/breeds';
@@ -55,33 +50,34 @@ function App() {
         ? `${catsUrl}&breed_ids=${selectedBreeds.join(',')}`
         : catsUrl;
     fetch(url)
-      .then((x) => x.json())
+      .then(x => x.json())
       .then(setImages)
       .finally(() => setLoading(false));
   }, [selectedBreeds]);
 
   useEffect(() => {
     fetch(breedsUrl)
-      .then((x) => x.json())
+      .then(x => x.json())
       .then(setBreeds);
   }, []);
 
   const { visible, scrollToTop } = useScrollToTop();
 
-  const breedsToDisplay = expanded ? breeds : breeds.slice(0, 20);
+  const breedsToDisplay = expanded ? breeds : breeds.slice(0, 10);
 
   return (
     <div className={cx('h-full', darkMode && 'dark')}>
       <header className="p-2 flex flex-row-reverse sm:flex-col bg-gradient-to-b from-black to-black/50">
         <nav className="flex w-full h-12 justify-end gap-4 items-center max-w-5xl 2xl:max-w-7xl mx-auto">
           <a
+            target="_blank"
             href="https://github.com/miroiu/catsplash"
             className="text-slate-500 hover:text-slate-200 p-1"
           >
             <GitHub size="md" />
           </a>
           <button
-            onClick={() => setDarkMode((x) => !x)}
+            onClick={() => setDarkMode(x => !x)}
             title={darkMode ? 'Change to light theme' : 'Change to dark theme'}
             className="text-yellow-500 hover:text-yellow-300 p-1"
           >
@@ -106,11 +102,11 @@ function App() {
               onChange={setSelectedBreeds}
               multiple
             >
-              <div className="relative rounded-b bg-white p-4 shadow-md">
-                <div className="pb-4 flex gap-1">
+              <div className="relative rounded-b bg-white shadow-md">
+                <div className="bg-white p-4 sticky sm:static top-0 flex gap-1">
                   <div className="grow">
                     <button
-                      onClick={() => setExpanded((prev) => !prev)}
+                      onClick={() => setExpanded(prev => !prev)}
                       className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black"
                     >
                       {expanded ? <Close size="sm" /> : <Plus size="sm" />}
@@ -126,7 +122,7 @@ function App() {
                     <RotateCcw size="sm" />
                   </button>
                   <button
-                    onClick={() => setUniform((prev) => !prev)}
+                    onClick={() => setUniform(prev => !prev)}
                     title={uniform ? 'Waterfall' : 'Uniform'}
                     className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black px-2"
                   >
@@ -135,14 +131,17 @@ function App() {
                 </div>
                 <Listbox.Options
                   static
-                  className="flex gap-2 items-center flex-wrap"
+                  className={cx(
+                    'px-4 pb-4 max-h-screen overflow-y-auto sm:flex gap-2 items-center flex-wrap cursor-paw',
+                    expanded ? 'flex' : 'hidden'
+                  )}
                 >
                   {breedsToDisplay.map((breed, index) => (
                     <Listbox.Option
                       key={index}
                       as="button"
                       value={breed.id}
-                      className="p-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200 cursor-paw"
+                      className="px-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200  cursor-paw"
                       title={breed.description}
                     >
                       <span>{breed.name}</span>
@@ -162,7 +161,7 @@ function App() {
                     )}
                   />
                 ))
-              : images.map((image) => (
+              : images.map(image => (
                   <button
                     key={image.id}
                     onClick={() => setImagePreview(image)}
