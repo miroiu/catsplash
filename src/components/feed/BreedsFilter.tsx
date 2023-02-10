@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Listbox } from '@headlessui/react';
 import cx from 'classix';
+import useSWR from 'swr';
 import { Close, Masonry, Plus, RotateCcw, Grid } from '../../icons';
-import { CatBreed, catsClient } from '../../api';
+import { catsClient } from '../../api';
 
 export type ViewType = 'uniform' | 'waterfall';
 
@@ -13,19 +14,20 @@ export interface BreedsFilterProps {
   onViewChange?: (view: ViewType) => void;
 }
 
+const default_breeds_count = 10;
+
 export const BreedsFilter = ({
   filter,
   onFilter,
   view = 'waterfall',
   onViewChange,
 }: BreedsFilterProps) => {
-  const [breeds, setBreeds] = useState<CatBreed[]>([]);
   const [expanded, setExpanded] = useState(false);
-  const breedsToDisplay = expanded ? breeds : breeds.slice(0, 10);
+  const { data, isLoading } = useSWR('cat:breeds', catsClient.getBreeds);
 
-  useEffect(() => {
-    catsClient.getBreeds().then(setBreeds);
-  }, []);
+  const breedsToDisplay = expanded
+    ? data
+    : data?.slice(0, default_breeds_count);
 
   const uniform = view === 'uniform';
 
@@ -66,17 +68,26 @@ export const BreedsFilter = ({
             expanded ? 'flex' : 'hidden'
           )}
         >
-          {breedsToDisplay.map((breed, index) => (
-            <Listbox.Option
-              key={index}
-              as="button"
-              value={breed.id}
-              className="px-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200  cursor-paw"
-              title={breed.description}
-            >
-              <span>{breed.name}</span>
-            </Listbox.Option>
-          ))}
+          {isLoading
+            ? Array.from({ length: default_breeds_count }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded shrink-0 flex-1 animate-pulse border-2 border-orange-200"
+                >
+                  <span className="collapse">BREED NO {i}</span>
+                </div>
+              ))
+            : breedsToDisplay?.map((breed, index) => (
+                <Listbox.Option
+                  key={index}
+                  as="button"
+                  value={breed.id}
+                  className="px-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200 cursor-paw"
+                  title={breed.description}
+                >
+                  <span>{breed.name}</span>
+                </Listbox.Option>
+              ))}
         </Listbox.Options>
       </div>
     </Listbox>

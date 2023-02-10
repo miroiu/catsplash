@@ -1,5 +1,6 @@
+import { memo } from 'react';
 import cx from 'classix';
-import { memo, useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { CatImage, catsClient } from '../../api';
 import { ViewType } from './BreedsFilter';
 import { usePreviewCatImage } from './CatImageContext';
@@ -15,7 +16,7 @@ const FeedItem = memo(({ image, view, onPreview }: FeedItemProps) => {
   return (
     <button
       onClick={() => onPreview?.(image)}
-      className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full"
+      className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full bg-slate-300"
     >
       <img
         src={image.url}
@@ -51,26 +52,20 @@ export interface FeedProps {
   view?: ViewType;
 }
 
-export const Feed = ({ filter, view }: FeedProps) => {
-  const [loading, setLoading] = useState(true);
-  const [images, setImages] = useState<CatImage[]>([]);
-
+export const Feed = ({ filter = [], view }: FeedProps) => {
   const [, previewImage] = usePreviewCatImage() || [];
 
-  useEffect(() => {
-    catsClient
-      .getCats(filter)
-      .then(setImages)
-      .finally(() => setLoading(false));
-  }, [filter]);
+  const { data, isLoading } = useSWR('feed:cats' + filter.join(','), () =>
+    catsClient.getCats(filter)
+  );
 
   return (
     <main className="columns-1 md:columns-2 lg:columns-3 min-h-full">
-      {loading
+      {isLoading
         ? Array.from({ length: 10 }).map((_, i) => (
             <FeedItemSkeleton key={i} index={i} view={view} />
           ))
-        : images.map(image => (
+        : data?.map(image => (
             <FeedItem
               key={image.id}
               image={image}
