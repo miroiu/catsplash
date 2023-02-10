@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*:focus-visible {
+  @apply outline-none rounded ring-4 ring-violet-600/75;
+}
+
+body {
+  overflow-y: scroll;
+  background-image: url('/cat-pattern.webp');
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
