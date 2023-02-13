@@ -1,6 +1,7 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import cx from 'classix';
-import useSWR from 'swr';
+import useSWR from 'swr/infinite';
+import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { CatImage, catsClient } from '../../api';
 import { ViewType } from './BreedsFilter';
 import { usePreviewCatImage } from './CatImageContext';
@@ -16,7 +17,7 @@ const FeedItem = memo(({ image, view, onPreview }: FeedItemProps) => {
   return (
     <button
       onClick={() => onPreview?.(image)}
-      className="rounded drop-shadow-lg mb-4 overflow-hidden cursor-zoom-in w-full h-full bg-slate-300"
+      className="rounded drop-shadow-lg overflow-hidden cursor-zoom-in w-full h-full bg-slate-300"
     >
       <img
         src={image.url}
@@ -52,27 +53,71 @@ export interface FeedProps {
   view?: ViewType;
 }
 
+const columns = 4;
+
 export const Feed = ({ filter = [], view }: FeedProps) => {
   const [, previewImage] = usePreviewCatImage() || [];
 
-  const { data, isLoading } = useSWR('feed:cats' + filter.join(','), () =>
-    catsClient.getCats(filter)
+  const { data, isLoading, isValidating, size, setSize } = useSWR(
+    index => `feed:cats${index}${filter.join(',')}`,
+    () => catsClient.getCats(filter),
+    { revalidateOnFocus: false, revalidateFirstPage: false }
   );
 
+  const images = data?.flat(1) || [];
+
+  const virtualizer = useWindowVirtualizer({
+    count: Math.floor(images.length / columns) + 1,
+    estimateSize: index =>
+      view === 'uniform' ? 320 : index % 2 == 0 ? 384 : 512,
+    overscan: 5,
+  });
+  const rows = virtualizer.getVirtualItems();
+
+  useEffect(() => {
+    const [lastItem] = [...rows].reverse();
+    if (
+      !isLoading &&
+      !isValidating &&
+      (lastItem.index + 1) * columns >= images.length
+    ) {
+      setSize(size => size + 1);
+    }
+  }, [rows, isLoading, isValidating]);
+
   return (
-    <main className="columns-1 md:columns-2 lg:columns-3 min-h-full">
-      {isLoading
-        ? Array.from({ length: 10 }).map((_, i) => (
-            <FeedItemSkeleton key={i} index={i} view={view} />
-          ))
-        : data?.map(image => (
-            <FeedItem
-              key={image.id}
-              image={image}
-              onPreview={previewImage}
-              view={view}
-            />
-          ))}
+    <main style={{ height: virtualizer.getTotalSize() }}>
+      <div
+        style={{
+          transform: `translateY(${rows[0].start}px)`,
+        }}
+      >
+        {rows.map(virtualRow => (
+          <div
+            key={virtualRow.key}
+            data-index={virtualRow.index}
+            ref={virtualizer.measureElement}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-4 gap-4"
+          >
+            {Array.from({ length: columns }).map((_, i) =>
+              images[virtualRow.index * columns + i] ? (
+                <FeedItem
+                  key={virtualRow.index * columns + i}
+                  image={images[virtualRow.index * columns + i]}
+                  onPreview={previewImage}
+                  view={view}
+                />
+              ) : (
+                <FeedItemSkeleton
+                  key={virtualRow.index * columns + i}
+                  index={virtualRow.index * columns + i}
+                  view={view}
+                />
+              )
+            )}
+          </div>
+        ))}
+      </div>
     </main>
   );
 };

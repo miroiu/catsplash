@@ -23,7 +23,9 @@ export const BreedsFilter = ({
   onViewChange,
 }: BreedsFilterProps) => {
   const [expanded, setExpanded] = useState(false);
-  const { data, isLoading } = useSWR('cat:breeds', catsClient.getBreeds);
+  const { data, isLoading } = useSWR('cat:breeds', catsClient.getBreeds, {
+    revalidateOnFocus: false,
+  });
 
   const breedsToDisplay = expanded
     ? data
@@ -56,7 +58,7 @@ export const BreedsFilter = ({
             disabled={!onViewChange}
             onClick={() => onViewChange?.(uniform ? 'waterfall' : 'uniform')}
             title={uniform ? 'Waterfall' : 'Uniform'}
-            className="flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black px-2"
+            className="md:hidden flex items-center gap-1 uppercase font-medium text-lg text-gray-600 hover:text-black px-2"
           >
             {uniform ? <Masonry size="md" /> : <Grid size="md" />}
           </button>
