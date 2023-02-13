@@ -79,9 +79,9 @@ export const BreedsFilter = ({
                   <span className="collapse">BREED NO {i}</span>
                 </div>
               ))
-            : breedsToDisplay?.map((breed, index) => (
+            : breedsToDisplay?.map(breed => (
                 <Listbox.Option
-                  key={index}
+                  key={breed.id}
                   as="button"
                   value={breed.id}
                   className="px-2 rounded shrink-0 flex-1 whitespace-nowrap select-none hover:text-white active:text-white hover:bg-orange-600 hover:border-orange-600 active:border-orange-700 active:bg-orange-700 ui-selected:bg-orange-600 ui-selected:text-white ui-selected:border-orange-600 ui-selected:active:border-orange-700 ui-selected:active:bg-orange-700 border-2 border-orange-200 cursor-paw"

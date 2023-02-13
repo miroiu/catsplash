@@ -58,7 +58,7 @@ const columns = 4;
 export const Feed = ({ filter = [], view }: FeedProps) => {
   const [, previewImage] = usePreviewImage() || [];
 
-  const { data, isLoading, isValidating, size, setSize } = useSWR(
+  const { data, isLoading, isValidating, setSize } = useSWR(
     index => `feed:cats${index}${filter.join(',')}`,
     () => catsClient.getCats(filter),
     { revalidateOnFocus: false, revalidateFirstPage: false }
@@ -76,7 +76,7 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
 
   useEffect(() => {
     const [lastItem] = [...rows].reverse();
-    console.log((lastItem.index + 1) * columns, images.length);
+
     if (
       !isLoading &&
       !isValidating &&
