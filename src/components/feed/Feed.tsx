@@ -4,7 +4,7 @@ import useSWR from 'swr/infinite';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { CatImage, catsClient } from '../../api';
 import { ViewType } from './BreedsFilter';
-import { usePreviewCatImage } from './CatImageContext';
+import { usePreviewImage } from '../image-preview';
 
 interface FeedItemProps {
   image: CatImage;
@@ -56,7 +56,7 @@ export interface FeedProps {
 const columns = 4;
 
 export const Feed = ({ filter = [], view }: FeedProps) => {
-  const [, previewImage] = usePreviewCatImage() || [];
+  const [, previewImage] = usePreviewImage() || [];
 
   const { data, isLoading, isValidating, size, setSize } = useSWR(
     index => `feed:cats${index}${filter.join(',')}`,
@@ -70,16 +70,17 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
     count: Math.floor(images.length / columns) + 1,
     estimateSize: index =>
       view === 'uniform' ? 320 : index % 2 == 0 ? 384 : 512,
-    overscan: 5,
+    overscan: 2,
   });
   const rows = virtualizer.getVirtualItems();
 
   useEffect(() => {
     const [lastItem] = [...rows].reverse();
+    console.log((lastItem.index + 1) * columns, images.length);
     if (
       !isLoading &&
       !isValidating &&
-      (lastItem.index + 1) * columns >= images.length
+      lastItem.index >= Math.floor((images.length - 1) / 4)
     ) {
       setSize(size => size + 1);
     }
