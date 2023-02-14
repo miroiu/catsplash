@@ -25,6 +25,7 @@ const FeedItem = memo(({ image, view, onPreview }: FeedItemProps) => {
           'w-full hover:scale-105 transition-transform',
           uniform && 'h-80 object-cover'
         )}
+        loading="lazy"
       />
     </button>
   );
@@ -59,7 +60,7 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
   const [, previewImage] = usePreviewImage() || [];
 
   const { data, isLoading, isValidating, setSize } = useSWR(
-    index => `feed:cats${index}${filter.join(',')}`,
+    (index) => `feed:cats${index}${filter.join(',')}`,
     () => catsClient.getCats(filter),
     { revalidateOnFocus: false, revalidateFirstPage: false }
   );
@@ -68,7 +69,7 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
 
   const virtualizer = useWindowVirtualizer({
     count: Math.floor(images.length / columns) + 1,
-    estimateSize: index =>
+    estimateSize: (index) =>
       view === 'uniform' ? 320 : index % 2 == 0 ? 384 : 512,
     overscan: 2,
   });
@@ -80,9 +81,9 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
     if (
       !isLoading &&
       !isValidating &&
-      lastItem.index >= Math.floor((images.length - 1) / 4)
+      lastItem.index >= Math.floor((images.length - 1) / columns)
     ) {
-      setSize(size => size + 1);
+      setSize((size) => size + 1);
     }
   }, [rows, isLoading, isValidating]);
 
@@ -93,7 +94,7 @@ export const Feed = ({ filter = [], view }: FeedProps) => {
           transform: `translateY(${rows[0].start}px)`,
         }}
       >
-        {rows.map(virtualRow => (
+        {rows.map((virtualRow) => (
           <div
             key={virtualRow.key}
             data-index={virtualRow.index}

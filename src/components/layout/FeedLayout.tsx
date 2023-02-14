@@ -9,7 +9,7 @@ export const FeedLayout = () => {
 
   const [view, setView] = usePersistedValue<'uniform' | 'waterfall'>(
     'filter:view',
-    'waterfall'
+    'uniform'
   );
 
   return (
